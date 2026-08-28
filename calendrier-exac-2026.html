@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendrier d'étude — ExAC 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blueprint-deep:#0d2740;
+    --blueprint:#153c5f;
+    --blueprint-soft:#1f5686;
+    --line-cyan:#bfe3ff;
+    --line-cyan-dim:rgba(191,227,255,.14);
+    --paper:#f3eee0;
+    --paper-dim:#e9e2cf;
+    --ink:#1c2024;
+    --ink-soft:#4a5560;
+    --s1:#2e6f9e;
+    --s2:#3f8a49;
+    --s3:#bd8a2c;
+    --s4:#a64a2c;
+    --util:#5c6570;
+    --fixe:#7a6a52;
+    --exam:#b23327;
+    --radius:3px;
+    --shadow:0 6px 18px rgba(6,20,34,.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--blueprint-deep);
+    background-image:
+      repeating-linear-gradient(0deg, var(--line-cyan-dim) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, var(--line-cyan-dim) 0 1px, transparent 1px 28px);
+    color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    padding:28px 22px 80px;
+  }
+  a{color:inherit;}
+
+  /* ---------- Title block ---------- */
+  .titleblock{
+    max-width:1240px;
+    margin:0 auto 18px;
+    border:1.5px solid var(--line-cyan);
+    background:linear-gradient(180deg, var(--blueprint) 0%, var(--blueprint-soft) 100%);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    box-shadow:var(--shadow);
+  }
+  .titleblock__brand{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    letter-spacing:.14em;
+    font-size:12.5px;
+    color:var(--line-cyan);
+    text-transform:uppercase;
+    border-bottom:1px solid var(--line-cyan-dim);
+    padding-bottom:10px;
+    margin-bottom:10px;
+  }
+  .titleblock__grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:0;
+  }
+  .titleblock__grid > div{
+    padding:2px 16px;
+    border-left:1px solid var(--line-cyan-dim);
+  }
+  .titleblock__grid > div:first-child{border-left:none;padding-left:0;}
+  .titleblock__grid span{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--line-cyan);
+    opacity:.75;
+  }
+  .titleblock__grid strong{
+    display:block;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;
+    margin-top:3px;
+    color:#fff;
+  }
+  #countdown{color:#ffd9a0;}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    max-width:1240px;
+    margin:0 auto 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .toolbar p{
+    margin:0;
+    font-size:13px;
+    color:var(--line-cyan);
+    opacity:.85;
+    max-width:700px;
+    line-height:1.5;
+  }
+  .toolbar__actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .toolbar button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    background:transparent;
+    color:var(--paper);
+    border:1px solid var(--line-cyan);
+    border-radius:var(--radius);
+    padding:9px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s ease;
+  }
+  .toolbar button:hover{background:rgba(191,227,255,.12);}
+  .toolbar button:disabled{opacity:.35;cursor:default;}
+  .toolbar button:disabled:hover{background:transparent;}
+
+  /* ---------- Layout ---------- */
+  .layout{
+    max-width:1240px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:230px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  /* ---------- Palette ---------- */
+  .palette{
+    background:var(--blueprint);
+    border:1px solid var(--line-cyan-dim);
+    border-radius:var(--radius);
+    padding:14px;
+    position:sticky;
+    top:20px;
+  }
+  .palette h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin:0 0 10px;
+    color:var(--line-cyan);
+  }
+  .palette-group{margin-bottom:14px;}
+  .palette-group__label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--line-cyan);
+    opacity:.8;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .palette-group__label .swatch{width:9px;height:9px;border-radius:2px;display:inline-block;flex:0 0 auto;}
+  .legend-note{
+    font-size:11.5px;
+    line-height:1.5;
+    color:var(--line-cyan);
+    opacity:.7;
+    border-top:1px solid var(--line-cyan-dim);
+    padding-top:10px;
+    margin-top:4px;
+  }
+  kbd{
+    font-family:'IBM Plex Mono',monospace;
+    background:rgba(191,227,255,.14);
+    border:1px solid var(--line-cyan-dim);
+    border-radius:2px;
+    padding:1px 5px;
+    font-size:10.5px;
+  }
+
+  /* ---------- Chips (base) ---------- */
+  .chip{
+    display:flex;
+    align-items:flex-start;
+    gap:5px;
+    background:var(--paper);
+    color:var(--ink);
+    border-left:4px solid var(--chip-color, var(--util));
+    border-radius:2px;
+    padding:4px 6px;
+    margin-bottom:4px;
+    font-size:11.5px;
+    line-height:1.28;
+    cursor:grab;
+    box-shadow:0 1px 0 rgba(0,0,0,.08);
+    position:relative;
+  }
+  .chip:active{cursor:grabbing;}
+  .chip.dragging{opacity:.35;}
+  .chip__code{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:9.5px;
+    color:var(--chip-color, var(--util));
+    flex:0 0 auto;
+    padding-top:1px;
+    white-space:nowrap;
+  }
+  .chip__title{flex:1 1 auto;}
+  .chip__del{
+    background:none;border:none;cursor:pointer;
+    color:inherit;opacity:.55;font-size:12px;line-height:1;
+    padding:0 2px;flex:0 0 auto;
+  }
+  .chip__del:hover{opacity:1;color:var(--exam);}
+  .palette .chip{cursor:grab;margin-bottom:5px;}
+  .palette .chip .chip__del{display:none;}
+
+  /* ---------- Chips (blocs fixes — couleurs distinctes) ---------- */
+  .chip--travail{background:#e4e9ee;border-left-color:#33465a;}
+  .chip--travail .chip__code,.chip--travail .chip__title{color:#33465a;}
+  .chip--formation{background:#e9e4f2;border-left-color:#4a3a63;}
+  .chip--formation .chip__code,.chip--formation .chip__title{color:#4a3a63;}
+  .chip--cours{background:#fde9c8;border-left-color:#7a4e0a;}
+  .chip--cours .chip__code,.chip--cours .chip__title{color:#7a4e0a;}
+  .chip--libre_pm{background:#e2f0e6;border-left-color:#2d5f3a;}
+  .chip--libre_pm .chip__code,.chip--libre_pm .chip__title{color:#2d5f3a;}
+  .chip--conge{background:#dff0da;border-left-color:#2e5c22;}
+  .chip--conge .chip__code,.chip--conge .chip__title{color:#2e5c22;}
+  .chip--examen{background:#fbeae8;border-left-color:var(--exam);}
+  .chip--examen .chip__code,.chip--examen .chip__title{color:var(--exam);}
+
+  /* ---------- Calendar ---------- */
+  .calendar{display:flex;flex-direction:column;gap:16px;}
+  .sheet{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .sheet__head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    background:var(--paper-dim);
+    padding:8px 14px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  .sheet__id{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.05em;
+  }
+  .sheet__range{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    text-transform:capitalize;
+  }
+  .sheet__grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+  }
+  .day{
+    border-right:1px solid var(--paper-dim);
+    border-top:1px solid var(--paper-dim);
+    padding:7px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .day:nth-child(7n){border-right:none;}
+  .day.is-past{opacity:.45;}
+  .day.is-today{background:#fff8e6;box-shadow:inset 0 0 0 2px var(--exam);}
+  .day.is-examday{background:#fbeae8;box-shadow:inset 0 0 0 2px var(--exam);}
+  .day__head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-family:'IBM Plex Mono',monospace;
+    margin-bottom:1px;
+  }
+  .day__wd{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+  .day__num{font-size:14px;font-weight:600;}
+
+  .period{border-top:1px dotted var(--paper-dim);padding-top:3px;}
+  .period:first-of-type{border-top:none;padding-top:0;}
+  .period__label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:8.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    opacity:.65;
+    margin-bottom:2px;
+  }
+  .dropzone{
+    min-height:20px;
+    border:1px dashed transparent;
+    border-radius:2px;
+    padding:1px;
+    transition:background .12s ease, border-color .12s ease;
+  }
+  .dropzone--over{
+    background:rgba(46,111,158,.08);
+    border-color:var(--s1);
+  }
+
+  footer{
+    max-width:1240px;
+    margin:26px auto 0;
+    font-size:11.5px;
+    color:var(--line-cyan);
+    opacity:.65;
+    text-align:center;
+    line-height:1.7;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:9px 16px;
+    border-radius:3px;
+    box-shadow:var(--shadow);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:820px){
+    .layout{grid-template-columns:1fr;}
+    .palette{position:static;}
+    .sheet__grid{grid-template-columns:repeat(2,1fr);}
+    .day:nth-child(7n){border-right:1px solid var(--paper-dim);}
+    .day:nth-child(2n){border-right:none;}
+    .titleblock__grid{grid-template-columns:repeat(2,1fr);row-gap:10px;}
+    .titleblock__grid > div:nth-child(3){border-left:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="titleblock">
+  <div class="titleblock__brand">ExAC · Planificateur de calendrier d'étude</div>
+  <div class="titleblock__grid">
+    <div><span>Examen</span><strong>ExAC 2026</strong></div>
+    <div><span>Séances</span><strong>2–3 novembre 2026</strong></div>
+    <div><span>Feuille</span><strong>Plan d'étude interactif</strong></div>
+    <div><span>Échéance</span><strong id="countdown">—</strong></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <p>Chaque journée est divisée en AM / PM / Soirée. Glissez une étiquette vers une case pour l'ajouter, glissez-la vers le haut ou le bas pour réordonner, ou vers une autre case/journée pour la déplacer. Double-clic pour renommer. <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> annule votre dernière action.</p>
+  <div class="toolbar__actions">
+    <button id="undoBtn">↶ Annuler (Ctrl+Z)</button>
+    <button id="resetBtn">↺ Réinitialiser le plan proposé</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="palette" id="palette">
+    <h2>Bac à matériel</h2>
+    <!-- groups injected by JS -->
+  </aside>
+
+  <main class="calendar" id="calendar">
+    <!-- weeks injected by JS -->
+  </main>
+
+</div>
+
+<footer>
+  Jour d'examen (2–3 nov.) : arrivée 30 min avant, pièce d'identité + lettre d'autorisation, crayons HB, calculatrice de base, exemplaires papier du CNB/CNÉB pour la Section 2.<br>
+  Fichier statique, autonome — hébergeable tel quel sur GitHub Pages.
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   DONNÉES
+   ========================================================= */
+const CATS = {
+  fixe: {label:'Blocs fixes (travail, cours…)',                     color:'var(--fixe)', noSwatch:true},
+  s1:   {label:'Section 1 — Programmation, site, ingénierie, coût', color:'var(--s1)'},
+  s2:   {label:'Section 2 — Code du bâtiment (CNB / CNÉB)',        color:'var(--s2)'},
+  s3:   {label:'Section 3 — Esquisse à conception durable',        color:'var(--s3)'},
+  s4:   {label:'Section 4 — Contrats à gestion de projet',         color:'var(--s4)'},
+  util: {label:'Outils de révision',                                color:'var(--util)'},
+  examen:{label:'Jour d\'examen',                                   color:'var(--exam)'}
+};
+
+// classe CSS spécifique par bloc fixe (couleurs distinctes conservées)
+const FIXED_CLASS = {
+  TRAVAIL:'chip--travail',
+  FORMATION:'chip--formation',
+  COURS:'chip--cours',
+  LIBRE_PM:'chip--libre_pm',
+  CONGE:'chip--conge',
+  EXAMEN:'chip--examen'
+};
+
+// période(s) par défaut occupée(s) par chaque bloc fixe
+const FIXED_PERIOD = {
+  TRAVAIL:['am','pm'],
+  FORMATION:['soir'],
+  COURS:['am'],
+  LIBRE_PM:['pm'],
+  CONGE:['am']
+};
+
+const ACTIVITIES = {
+  TRAVAIL:{title:'Travail', cat:'fixe'},
+  FORMATION:{title:'Formation Code (soir)', cat:'fixe'},
+  COURS:{title:'Cours Code · 9h–11h', cat:'fixe'},
+  LIBRE_PM:{title:'Après-midi libre', cat:'fixe'},
+  CONGE:{title:'Congé — journée complète', cat:'fixe'},
+  EXAMEN:{title:'Jour d\'examen ExAC', cat:'examen'},
+
+  INTRO:{title:'Prise de contact — structure de l\'examen', cat:'util'},
+  T1:{title:'Programmation', cat:'s1'},
+  T2:{title:'Étude de l\'emplacement et environnement', cat:'s1'},
+  T3:{title:'Coordination des systèmes d\'ingénierie', cat:'s1'},
+  T4:{title:'Gestion du coût', cat:'s1'},
+  T5:{title:'Code national du bâtiment (CNB)', cat:'s2'},
+  T6:{title:'Code national de l\'énergie (CNÉB)', cat:'s2'},
+  T7:{title:'Esquisse du projet', cat:'s3'},
+  T8:{title:'Conception préliminaire du projet', cat:'s3'},
+  T9:{title:'Projet définitif — matériaux et assemblages', cat:'s3'},
+  T10:{title:'Projet définitif — devis et cahier des charges', cat:'s3'},
+  T15:{title:'Littératie en conception durable', cat:'s3'},
+  T11:{title:'Appels d\'offres et négociation de contrat', cat:'s4'},
+  T12:{title:'Phase de construction — Bureau', cat:'s4'},
+  T13:{title:'Phase de construction — Chantier', cat:'s4'},
+  T14:{title:'Gestion de projet et pratique professionnelle', cat:'s4'},
+  REV:{title:'Révision', cat:'util'},
+  QCM:{title:'Banque de questions (Annexe 2)', cat:'util'},
+  EXB:{title:'Examen blanc chronométré', cat:'util'},
+  REPOS:{title:'Repos actif', cat:'util'}
+};
+
+const COURSE_DATES = new Set(['2026-08-28','2026-09-11','2026-09-25','2026-10-09','2026-10-23']);
+const FINAL_WEEK_START = '2026-10-26';
+const FINAL_WEEK_END   = '2026-11-01';
+const EXAM_INFO = {
+  '2026-11-02':{am:'Séance 1 — matin (Section 1)', pm:'Séance 2 — après-midi (Section 2)'},
+  '2026-11-03':{am:'Séance 3 — matin (Section 3)', pm:'Séance 4 — après-midi (Section 4)'}
+};
+
+// Contenu d'étude par défaut, par date (YYYY-MM-DD) — chaque item précise sa période (am/pm/soir)
+const DEFAULT_ITEMS = {
+'2026-08-28':[{code:'INTRO',title:'Prise de contact avec le guide et structure de l\'examen',period:'pm'},{code:'T1',title:'Programmation — composantes d\'un programme architectural',period:'soir'}],
+'2026-08-29':[{code:'T1',title:'Programmation — analyse (site, budget, besoins, durabilité)',period:'am'},{code:'T2',title:'Étude de l\'emplacement — principes d\'implantation',period:'pm'}],
+'2026-08-30':[{code:'T2',title:'Étude de l\'emplacement — conception et données de site',period:'am'},{code:'QCM',title:'Questions d\'examen — Objectifs 1 et 2',period:'soir'}],
+
+'2026-09-04':[{code:'T3',title:'Coordination ingénierie — structure, mécanique, électricité',period:'am'}],
+'2026-09-05':[{code:'T3',title:'Coordination — génie civil et coordination des documents',period:'am'},{code:'T4',title:'Gestion du coût — facteurs et méthodes d\'estimation',period:'pm'}],
+'2026-09-06':[{code:'T4',title:'Gestion du coût — application des méthodes',period:'am'},{code:'QCM',title:'Questions d\'examen — Objectifs 3 et 4',period:'soir'}],
+
+'2026-09-11':[{code:'T5',title:'CNB — portée, application, classification (Partie 3)',period:'pm'}],
+'2026-09-12':[{code:'T5',title:'CNB — exigences prescriptives (Partie 9)',period:'am'}],
+'2026-09-13':[{code:'T5',title:'CNB — sécurité incendie, issues, accessibilité, salubrité',period:'am'},{code:'QCM',title:'Questions d\'examen — Code du bâtiment',period:'soir'}],
+
+'2026-09-18':[{code:'T5',title:'CNB — solutions de rechange et énoncés fonctionnels',period:'am'}],
+'2026-09-19':[{code:'T6',title:'CNÉB — exigences énergétiques',period:'am'},{code:'REV',title:'Révision des sections 1 et 2',period:'pm'}],
+'2026-09-20':[{code:'EXB',title:'Mini-examen chronométré — Sections 1 et 2',period:'am'}],
+
+'2026-09-25':[{code:'T7',title:'Esquisse du projet — renseignements et services requis',period:'pm'}],
+'2026-09-26':[{code:'T8',title:'Conception préliminaire du projet',period:'am'},{code:'T9',title:'Projet définitif — matériaux et propriétés',period:'pm'}],
+'2026-09-27':[{code:'T9',title:'Mécanique des sols et systèmes de fondation',period:'am'},{code:'QCM',title:'Questions d\'examen — Objectifs 6 et 7',period:'soir'}],
+
+'2026-10-02':[{code:'T9',title:'Évaluation des assemblages et détails',period:'am'}],
+'2026-10-03':[{code:'T10',title:'Devis descriptif — DDN et cahier des charges',period:'am'}],
+'2026-10-04':[{code:'T10',title:'Rédaction du devis et composantes du projet définitif',period:'am'},{code:'QCM',title:'Questions d\'examen — Objectif 8',period:'soir'}],
+
+'2026-10-09':[{code:'T15',title:'Conception durable — climat et cycle de vie',period:'pm'}],
+'2026-10-10':[{code:'REV',title:'Révision complète — Section 3',period:'am'},{code:'T11',title:'Appels d\'offres — modes de réalisation de projets',period:'pm'}],
+'2026-10-11':[{code:'T11',title:'Contrats CCDC et méthodes d\'attribution',period:'am'},{code:'QCM',title:'Questions d\'examen — Objectifs 9 et 13',period:'soir'}],
+
+'2026-10-16':[{code:'T12',title:'Construction — Bureau : rôles et tâches administratives',period:'am'}],
+'2026-10-17':[{code:'T13',title:'Construction — Chantier : surveillance et visites',period:'am'},{code:'T14',title:'Gestion de projet — processus et honoraires',period:'pm'}],
+'2026-10-18':[{code:'EXB',title:'Mini-examen chronométré — Section 4',period:'am'}],
+
+'2026-10-23':[{code:'REV',title:'Révision générale — repérage des points faibles',period:'pm'}],
+'2026-10-24':[{code:'EXB',title:'Examen blanc complet — 4 sections, conditions réelles',period:'am'}],
+'2026-10-25':[{code:'REV',title:'Correction de l\'examen blanc et plan de match final',period:'am'}],
+
+'2026-10-26':[{code:'EXB',title:'Examen d\'entraînement — Section 1',period:'am'}],
+'2026-10-27':[{code:'EXB',title:'Examen d\'entraînement — Section 2',period:'am'}],
+'2026-10-28':[{code:'EXB',title:'Examen d\'entraînement — Section 3',period:'am'}],
+'2026-10-29':[{code:'EXB',title:'Examen d\'entraînement — Section 4',period:'am'}],
+'2026-10-30':[{code:'REV',title:'Révision ciblée — erreurs des 4 examens d\'entraînement',period:'am'}],
+'2026-10-31':[{code:'REV',title:'Révision finale — fiches-résumés, formules, calculs types',period:'am'}],
+'2026-11-01':[{code:'REPOS',title:'Relecture légère et préparation du matériel permis',period:'am'}]
+};
+
+const PERIODS = ['am','pm','soir'];
+const PERIOD_LABEL = {am:'AM', pm:'PM', soir:'Soir'};
+const WEEKDAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']; // getDay(): 0=Dim … 6=Sam
+const MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+/* =========================================================
+   GÉNÉRATION DES JOURNÉES (23 août → 3 novembre 2026)
+   Semaines débutant le dimanche.
+   ========================================================= */
+function isoDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+
+const START = new Date('2026-08-23T00:00:00'); // dimanche
+const TOTAL_DAYS = 73; // jusqu'au 3 novembre 2026 inclusivement
+const allDays = [];
+for(let i=0;i<TOTAL_DAYS;i++){
+  const d = addDays(START,i);
+  const iso = isoDate(d);
+  const wd = d.getDay(); // 0=Dim ... 6=Sam
+  const isFinal = iso >= FINAL_WEEK_START && iso <= FINAL_WEEK_END;
+  const isExam = !!EXAM_INFO[iso];
+  let fixed = [];
+  if(isExam){
+    fixed = ['EXAMEN'];
+  } else if(isFinal){
+    fixed = ['CONGE'];
+  } else {
+    if(wd>=1 && wd<=4) fixed = ['TRAVAIL','FORMATION'];       // Lun-Jeu
+    else if(wd===5) fixed = COURSE_DATES.has(iso) ? ['COURS'] : []; // Ven
+    else if(wd===6) fixed = [];                                // Sam
+    else fixed = ['LIBRE_PM'];                                  // Dim
+  }
+  allDays.push({date:iso, jsDate:d, wd, fixed, isExam});
+}
+
+const WEEKS = [];
+for(let w=0; w*7 < TOTAL_DAYS; w++){
+  const days = allDays.slice(w*7, (w*7)+7);
+  WEEKS.push({id:'S'+String(w+1).padStart(2,'0'), days});
+}
+
+function buildDefaultItems(day){
+  const periods = {am:[], pm:[], soir:[]};
+  if(EXAM_INFO[day.date]){
+    periods.am.push({code:'EXAMEN', title:EXAM_INFO[day.date].am});
+    periods.pm.push({code:'EXAMEN', title:EXAM_INFO[day.date].pm});
+    return periods;
+  }
+  day.fixed.forEach(code=>{
+    (FIXED_PERIOD[code]||['am']).forEach(p=> periods[p].push({code, title:ACTIVITIES[code].title}));
+  });
+  (DEFAULT_ITEMS[day.date]||[]).forEach(it=>{
+    periods[it.period || 'am'].push({code:it.code, title:it.title});
+  });
+  return periods;
+}
+
+function frRange(days){
+  const a = days[0].jsDate, b = days[days.length-1].jsDate;
+  const sameMonth = a.getMonth()===b.getMonth();
+  if(sameMonth){
+    return `${a.getDate()}–${b.getDate()} ${MONTHS_FR[a.getMonth()]} ${a.getFullYear()}`;
+  }
+  return `${a.getDate()} ${MONTHS_FR[a.getMonth()]} – ${b.getDate()} ${MONTHS_FR[b.getMonth()]} ${a.getFullYear()}`;
+}
+
+/* =========================================================
+   ÉTAT (localStorage avec repli sécurisé)
+   ========================================================= */
+const STORAGE_KEY = 'exac-planner-2026-v3';
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveState(){
+  const state = {};
+  document.querySelectorAll('.day').forEach(cell=>{});
+  document.querySelectorAll('.sheet__grid').forEach(()=>{});
+  document.querySelectorAll('.dropzone').forEach(dz=>{
+    const date = dz.dataset.date, period = dz.dataset.period;
+    if(!state[date]) state[date] = {am:[],pm:[],soir:[]};
+    state[date][period] = Array.from(dz.children).map(ch=>({
+      code: ch.dataset.code,
+      title: ch.querySelector('.chip__title').textContent,
+      id: ch.dataset.id
+    }));
+  });
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ /* stockage indisponible, session seulement */ }
+}
+
+/* =========================================================
+   ANNULER (Ctrl/Cmd+Z)
+   ========================================================= */
+const undoStack = [];
+function pushUndo(action){
+  undoStack.push(action);
+  if(undoStack.length>100) undoStack.shift();
+  document.getElementById('undoBtn').disabled = false;
+}
+function showToast(text){
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(showToast._tid);
+  showToast._tid = setTimeout(()=>t.classList.remove('show'), 1400);
+}
+function dz(date,period){
+  return document.querySelector(`.dropzone[data-date="${date}"][data-period="${period}"]`);
+}
+function performUndo(){
+  const action = undoStack.pop();
+  document.getElementById('undoBtn').disabled = undoStack.length===0;
+  if(!action) return;
+  if(action.type==='move'){
+    const chip = document.querySelector(`.chip[data-id="${action.id}"]`);
+    const fromDz = dz(action.fromDate, action.fromPeriod);
+    if(chip && fromDz){
+      const nextChip = action.fromNextId ? document.querySelector(`.chip[data-id="${action.fromNextId}"]`) : null;
+      if(nextChip && nextChip.parentElement === fromDz) fromDz.insertBefore(chip, nextChip);
+      else fromDz.appendChild(chip);
+      showToast('Déplacement annulé');
+    }
+  } else if(action.type==='add'){
+    const chip = document.querySelector(`.chip[data-id="${action.id}"]`);
+    if(chip){ chip.remove(); showToast('Ajout annulé'); }
+  } else if(action.type==='delete'){
+    const targetDz = dz(action.fromDate, action.fromPeriod);
+    if(targetDz && ACTIVITIES[action.code]){
+      const chip = makeChip(action.code, action.title, true, action.id);
+      const nextChip = action.nextId ? document.querySelector(`.chip[data-id="${action.nextId}"]`) : null;
+      if(nextChip && nextChip.parentElement === targetDz) targetDz.insertBefore(chip, nextChip);
+      else targetDz.appendChild(chip);
+      showToast('Suppression annulée');
+    }
+  } else if(action.type==='rename'){
+    const chip = document.querySelector(`.chip[data-id="${action.id}"]`);
+    if(chip){ chip.querySelector('.chip__title').textContent = action.oldTitle; showToast('Renommage annulé'); }
+  }
+  saveState();
+}
+document.addEventListener('keydown', (e)=>{
+  const key = e.key.toLowerCase();
+  if((e.ctrlKey||e.metaKey) && key==='z' && !e.shiftKey){
+    e.preventDefault();
+    performUndo();
+  }
+});
+
+/* =========================================================
+   RENDU
+   ========================================================= */
+let uidCounter = 0;
+function newId(){ return 'chip-' + (++uidCounter) + '-' + Date.now() + '-' + Math.floor(Math.random()*1000); }
+
+function makeChip(code, title, placed, forcedId){
+  const cat = ACTIVITIES[code].cat;
+  const color = CATS[cat].color;
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  if(FIXED_CLASS[code]) chip.classList.add(FIXED_CLASS[code]);
+  chip.style.setProperty('--chip-color', color);
+  chip.draggable = true;
+  chip.dataset.code = code;
+  if(placed){
+    chip.dataset.id = forcedId || newId();
+  }
+  chip.innerHTML = `<span class="chip__code">${code}</span><span class="chip__title">${title}</span><button class="chip__del" title="Retirer">×</button>`;
+  chip.addEventListener('dragstart', onChipDragStart);
+  chip.addEventListener('dragend', onChipDragEnd);
+  if(placed){
+    chip.querySelector('.chip__del').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const parent = chip.parentElement;
+      const fromDate = parent ? parent.dataset.date : null;
+      const fromPeriod = parent ? parent.dataset.period : null;
+      const nextId = chip.nextElementSibling ? chip.nextElementSibling.dataset.id : null;
+      pushUndo({type:'delete', code:chip.dataset.code, title:chip.querySelector('.chip__title').textContent, id:chip.dataset.id, fromDate, fromPeriod, nextId});
+      chip.remove();
+      saveState();
+    });
+    chip.querySelector('.chip__title').addEventListener('dblclick', ()=>{
+      const cur = chip.querySelector('.chip__title').textContent;
+      const next = prompt('Modifier le texte de cette étiquette :', cur);
+      if(next !== null && next.trim() !== '' && next.trim() !== cur){
+        pushUndo({type:'rename', id:chip.dataset.id, oldTitle:cur, newTitle:next.trim()});
+        chip.querySelector('.chip__title').textContent = next.trim();
+        saveState();
+      }
+    });
+  }
+  return chip;
+}
+
+function renderPalette(){
+  const palette = document.getElementById('palette');
+  const byCat = {};
+  Object.entries(ACTIVITIES).forEach(([code,a])=>{
+    (byCat[a.cat] = byCat[a.cat]||[]).push(code);
+  });
+  Object.entries(CATS).forEach(([catKey,cat])=>{
+    if(!byCat[catKey]) return;
+    const group = document.createElement('div');
+    group.className = 'palette-group';
+    const label = document.createElement('div');
+    label.className = 'palette-group__label';
+    label.innerHTML = (cat.noSwatch ? '' : `<span class="swatch" style="background:${cat.color}"></span>`) + cat.label;
+    group.appendChild(label);
+    byCat[catKey].forEach(code=>{
+      const chip = makeChip(code, ACTIVITIES[code].title, false);
+      group.appendChild(chip);
+    });
+    palette.appendChild(group);
+  });
+  const note = document.createElement('div');
+  note.className = 'legend-note';
+  note.innerHTML = 'Glissez une étiquette vers une case AM/PM/Soir pour l\'y ajouter. Les blocs fixes gardent leur couleur d\'origine et restent déplaçables.';
+  palette.appendChild(note);
+}
+
+function renderCalendar(savedState){
+  const cal = document.getElementById('calendar');
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  WEEKS.forEach(week=>{
+    const sheet = document.createElement('section');
+    sheet.className = 'sheet';
+    const head = document.createElement('div');
+    head.className = 'sheet__head';
+    head.innerHTML = `<span class="sheet__id">FEUILLE ${week.id}</span><span class="sheet__range">${frRange(week.days)}</span>`;
+    sheet.appendChild(head);
+
+    const grid = document.createElement('div');
+    grid.className = 'sheet__grid';
+
+    week.days.forEach(day=>{
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      const dDate = day.jsDate;
+      if(dDate < today) cell.classList.add('is-past');
+      if(dDate.getTime() === today.getTime()) cell.classList.add('is-today');
+      if(day.isExam) cell.classList.add('is-examday');
+
+      const dayHead = document.createElement('div');
+      dayHead.className = 'day__head';
+      dayHead.innerHTML = `<span class="day__wd">${WEEKDAYS_FR[day.wd]}</span><span class="day__num">${dDate.getDate()}</span>`;
+      cell.appendChild(dayHead);
+
+      const defaults = buildDefaultItems(day);
+      const saved = savedState && savedState[day.date];
+
+      PERIODS.forEach(period=>{
+        const pWrap = document.createElement('div');
+        pWrap.className = 'period';
+        const pLabel = document.createElement('div');
+        pLabel.className = 'period__label';
+        pLabel.textContent = PERIOD_LABEL[period];
+        pWrap.appendChild(pLabel);
+
+        const zone = document.createElement('div');
+        zone.className = 'dropzone';
+        zone.dataset.date = day.date;
+        zone.dataset.period = period;
+        zone.addEventListener('dragover', onDropzoneDragOver);
+        zone.addEventListener('dragleave', onDropzoneDragLeave);
+        zone.addEventListener('drop', onDropzoneDrop);
+
+        const items = saved ? (saved[period]||[]) : (defaults[period]||[]);
+        items.forEach(it=>{
+          if(ACTIVITIES[it.code]) zone.appendChild(makeChip(it.code, it.title, true, it.id));
+        });
+
+        pWrap.appendChild(zone);
+        cell.appendChild(pWrap);
+      });
+
+      grid.appendChild(cell);
+    });
+
+    sheet.appendChild(grid);
+    cal.appendChild(sheet);
+  });
+}
+
+function renderCountdown(){
+  const examDate = new Date('2026-11-02T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((examDate - today) / 86400000);
+  const el = document.getElementById('countdown');
+  if(diff > 1) el.textContent = `J-${diff}`;
+  else if(diff === 1) el.textContent = 'J-1 — demain !';
+  else if(diff === 0) el.textContent = 'Aujourd\'hui — bonne chance !';
+  else if(diff === -1) el.textContent = 'Jour 2 de l\'examen';
+  else el.textContent = 'Examen complété';
+}
+
+/* =========================================================
+   DRAG & DROP (avec réordonnancement en direct)
+   ========================================================= */
+let dragPayload = null;
+
+function getDragAfterElement(container, y){
+  const els = [...container.querySelectorAll('.chip:not(.dragging)')];
+  return els.reduce((closest, child)=>{
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height/2;
+    if(offset < 0 && offset > closest.offset){
+      return {offset, element:child};
+    }
+    return closest;
+  }, {offset:-Infinity, element:null}).element;
+}
+
+function onChipDragStart(e){
+  const chip = e.currentTarget;
+  if(chip.dataset.id){
+    const parent = chip.parentElement;
+    dragPayload = {
+      kind:'move',
+      id: chip.dataset.id,
+      fromDate: parent ? parent.dataset.date : null,
+      fromPeriod: parent ? parent.dataset.period : null,
+      fromNextId: chip.nextElementSibling ? chip.nextElementSibling.dataset.id : null
+    };
+    chip.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', 'move:'+chip.dataset.id);
+  } else {
+    dragPayload = {kind:'new', code: chip.dataset.code};
+    e.dataTransfer.setData('text/plain', 'new:'+chip.dataset.code);
+  }
+  e.dataTransfer.effectAllowed = 'copyMove';
+}
+function onChipDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  dragPayload = null;
+}
+function onDropzoneDragOver(e){
+  e.preventDefault();
+  e.currentTarget.classList.add('dropzone--over');
+  if(dragPayload && dragPayload.kind==='move'){
+    const draggingEl = document.querySelector('.chip.dragging');
+    if(draggingEl){
+      const afterEl = getDragAfterElement(e.currentTarget, e.clientY);
+      if(afterEl == null) e.currentTarget.appendChild(draggingEl);
+      else e.currentTarget.insertBefore(draggingEl, afterEl);
+    }
+  }
+}
+function onDropzoneDragLeave(e){
+  e.currentTarget.classList.remove('dropzone--over');
+}
+function onDropzoneDrop(e){
+  e.preventDefault();
+  const zone = e.currentTarget;
+  zone.classList.remove('dropzone--over');
+  if(!dragPayload) return;
+
+  if(dragPayload.kind === 'new'){
+    const code = dragPayload.code;
+    if(!ACTIVITIES[code]){ dragPayload = null; return; }
+    const chip = makeChip(code, ACTIVITIES[code].title, true);
+    const afterEl = getDragAfterElement(zone, e.clientY);
+    if(afterEl == null) zone.appendChild(chip); else zone.insertBefore(chip, afterEl);
+    pushUndo({type:'add', id:chip.dataset.id, toDate:zone.dataset.date, toPeriod:zone.dataset.period});
+    saveState();
+  } else if(dragPayload.kind === 'move'){
+    const chip = document.querySelector(`.chip[data-id="${dragPayload.id}"]`);
+    if(chip){
+      if(chip.parentElement !== zone) zone.appendChild(chip);
+      pushUndo({
+        type:'move', id:chip.dataset.id,
+        fromDate:dragPayload.fromDate, fromPeriod:dragPayload.fromPeriod, fromNextId:dragPayload.fromNextId
+      });
+      saveState();
+    }
+  }
+  dragPayload = null;
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Réinitialiser le calendrier au plan d\'étude proposé ? Vos ajustements actuels seront perdus.')){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    location.reload();
+  }
+});
+document.getElementById('undoBtn').addEventListener('click', performUndo);
+document.getElementById('undoBtn').disabled = true;
+
+renderPalette();
+renderCalendar(loadState());
+renderCountdown();
+</script>
+</body>
+</html>
